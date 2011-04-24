@@ -66,7 +66,6 @@ class Request:
         if fromtime and totime:
             if not self.timeinrange(fromtime, totime):
                 return False
-
         return True
 
     def printattributes(self, printattributes):
@@ -102,7 +101,6 @@ class Report:
         for ttime in self.counters.keys():
             sys.stderr.write('%-20s %9s\n' % (ttime, self.counters[ttime]))
 
-
 class Logfile:
     """A logfile being parsed."""
     def __init__(self, filename, report):
@@ -133,7 +131,6 @@ class Logfile:
                         req.printattributes(options.printformat)
         file.close()
 
-
 def parseline(line, lineregex):
     """Given a log line, return the matching parts of the request"""
     match = lineregex.match(line)
@@ -142,7 +139,6 @@ def parseline(line, lineregex):
     else:
         return match.groupdict()
 
-    
 def addregexfilter(option, opt_str, value, parser):
     """Handle multiple regex filters"""
     fieldname = re.compile(r"^--([a-z]+)-regex").match(opt_str).group(1)
