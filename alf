@@ -133,29 +133,32 @@ def addregexfilter(option, opt_str, value, parser):
 
 parser = optparse.OptionParser()
 parser.add_option("-i", "--print-invalid", action="store_true", 
-        dest="printinvalid", help="Prints invalid lines (not matched by regex)")
+    dest="printinvalid", 
+    help="Print lines which were not parsed.")
 
 parser.add_option( "--print-line", action="store_true", 
-        dest="printline", help="Prints entire line")
+    dest="printline", help="Print matched lines to stdout.")
 
 parser.add_option( "--print-url", action="store_true", 
-        dest="printurl", help="Prints url")
+    dest="printurl", help="Print only the contents of the url field.")
 
 parser.add_option( "--print-format", action="store", 
-        dest="printformat", metavar="PATTERN", help="Print matching results in PATTERN")
+    dest="printformat", metavar="PATTERN", help="Print matching results in PATTERN")
 
 parser.add_option( "--log-format", action="store", 
-        dest="logformat", default="combined", metavar="PATTERN", help="Print matching results in PATTERN")
+    dest="logformat", default="combined", metavar="PATTERN", 
+    help="Specify the format of the log file(s). Either common or combined.")
 
 filters = {}
 for field in formatregexes["combined"].groupindex.keys(): 
-    parser.add_option("--" + field + "-regex", action="callback", callback=addregexfilter, type="string",
-        help="Select lines where " + field + " matching REGEX", metavar="REGEX")
+    parser.add_option("--" + field + "-regex", action="callback", 
+        callback=addregexfilter, type="string",
+        help="Select lines where " + field + " matches REGEX", metavar="REGEX")
 
 parser.add_option( "--from-date", action="store", 
-        dest="fromdate", help="Start date/time")
+    dest="fromdate", help="Start date/time")
 parser.add_option( "--to-date", action="store", 
-        dest="todate", help="Start date/time")
+    dest="todate", help="Start date/time")
 
 (options, args) = parser.parse_args()
 
