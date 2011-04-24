@@ -168,6 +168,9 @@ parser.add_option("--print-format", action = "store",
     dest = "printformat", metavar = "PATTERN", 
     help = "Print matching results in PATTERN")
 
+parser.add_option("--line-counts", action = "store_true", default = False,
+    dest = "linecounts", help = "Print counts of matched, unmatched and invalid lines.")
+
 parser.add_option("--log-format", action="store", 
     dest = "logformat", default = "combined", metavar = "PATTERN", 
     help = "Specify the format of the log file(s). Either common or combined.")
@@ -198,5 +201,6 @@ report = Report()
 for filename in args:
     logrep = Logfile(filename, report)
 
-report.summary()
-report.counter_summary()
+if options.linecounts:
+    report.summary()
+#report.counter_summary()
