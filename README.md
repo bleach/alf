@@ -27,6 +27,9 @@ You will need Python >= 2.4 installed.
  - or via git by doing "git clone git@github.com:bleach/alf.git"
 - Copy the file alf into your $PATH
 
+If you have the psyco pythom module installed, alf will use it in an attempt to
+improve performance. 
+
 Examples
 --------
 
