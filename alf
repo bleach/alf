@@ -32,9 +32,14 @@ except ImportError:
 
 formatregexes = {}
 
-formatregexes["combined"] = re.compile(r"""^(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)" ?""")
+common = r"""(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+)"""
+combined = common + ' "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)"'
+vhost_combined = r"""(?P<vhost>\S+) """ + combined
+print vhost_combined
 
-formatregexes["common"] = re.compile(r"""^(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+) ?""")
+formatregexes["common"] = re.compile('^' + common)
+formatregexes["combined"] = re.compile('^' + combined)
+formatregexes["vhost_combined"] = re.compile('^' + vhost_combined)
 
 dateregex = re.compile(r"""^\[(.+) [+-]\d\d\d\d\]""")
 
