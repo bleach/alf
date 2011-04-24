@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+#
+
+import re
+import sys
+import optparse
+import datetime
+import time
+
+try:
+    import psyco
+    psyco.full()
+except ImportError:
+    pass
+
+formatregexes = {}
+
+formatregexes["combined"] = re.compile(r"""^(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)" ?""")
+
+formatregexes["common"] = re.compile(r"""^(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+) ?""")
+
+dateregex = re.compile(r"""^\[(.+) [+-]\d\d\d\d\]""")
+
+class Request:
+    """Represents a HTTP request obtained from the logfiles."""
+    def __init__(self, attrdict):
+        self.attributes = attrdict
+        self._datetime = None
+
+    def getdatetime(self):
+        """Return time of the request in datetime format."""
+        if not self._datetime:
+            cleandate = dateregex.match(self.attributes["timestamp"]).group(1)
+            self._datetime = datetime.datetime(*(time.strptime(cleandate, "%d/%b/%Y:%H:%M:%S")[0:6]))
+        return self._datetime
+
+    def timeinrange(self, fromtime, totime):
+        if self.getdatetime() >= fromtime and self.getdatetime() <= totime:
+            return True
+        else:
+            return False
+
+    def matchesfilters(self, filters, fromtime=None, totime=None):
+        """Returns True if all the filters given match"""
+        for fieldname in filters.keys():
+            regex = filters[fieldname]
+            if regex.search(self.attributes[fieldname]) == None:
+                return False
+        if fromtime and totime:
+            if not self.timeinrange(fromtime, totime):
+                return False
+
+        return True
+
+    def printattributes(self, printattributes):
+        """Given a dict of matches and a space delimited string containing fields."""
+        fields = [ self.attributes[field] for field in printattributes.split() if self.attributes.has_key(field) ]
+        print '%s ' * len(fields) % tuple(fields)
+
+    def truncatedtime(self):
+        return self.getdatetime().strftime('%d/%m/%Y %H')
+
+class Report:
+    """Summary report of a number of files."""
+    def __init__(self):
+        self.valid = 0
+        self.invalid = 0
+        self.matchedbyfilters = 0
+        self.counters = {}
+
+    def increment_counters(self, req):
+        trunctime = req.truncatedtime()
+        if self.counters.has_key(trunctime):
+            self.counters[trunctime] += 1
+        else:
+            self.counters[trunctime] = 0
+
+    def summary(self):
+        self.percent = 100 * float(self.matchedbyfilters)/(self.valid+self.invalid)
+        sys.stderr.write("%d/%d lines matched (%0.2f%%)\n" % (self.matchedbyfilters, self.valid+self.invalid, self.percent)) 
+        sys.stderr.write(str(self.invalid) + " invalid lines\n")
+        sys.stderr.write(str(self.valid) + " valid lines\n")
+
+    def counter_summary(self):
+        for ttime in self.counters.keys():
+            sys.stderr.write('%-20s %9s\n' % (ttime, self.counters[ttime]))
+
+
+class Logfile:
+    """A logfile being parsed."""
+    def __init__(self, filename, report):
+        self.filename = filename
+        self.report = report
+        self._process_file()
+
+    def _process_file(self):
+        file = open(self.filename, 'r')
+        for line in file.xreadlines():
+            matchdict = parseline(line, formatregexes[options.logformat])
+            if matchdict == None:
+                if options.printinvalid:
+                    sys.stderr.write(line)
+                self.report.invalid += 1
+            else:
+                self.report.valid += 1
+                req = Request(matchdict)
+                if req.matchesfilters(filters, options.fromdate, options.todate):
+                    report.matchedbyfilters += 1
+
+                    self.report.increment_counters(req)
+                    if options.printline:
+                        print line.strip() 
+                    if options.printurl:
+                        req.printattributes("url")
+                    if options.printformat:
+                        req.printattributes(options.printformat)
+        file.close()
+
+
+def parseline(line, lineregex):
+    """Given a log line, return the matching parts of the request"""
+    match = lineregex.match(line)
+    if match == None:
+        return None
+    else:
+        return match.groupdict()
+
+    
+def addregexfilter(option, opt_str, value, parser):
+    """Handle multiple regex filters"""
+    fieldname = re.compile(r"^--([a-z]+)-regex").match(opt_str).group(1)
+    filters[fieldname] = re.compile(value)
+
+parser = optparse.OptionParser()
+parser.add_option("-i", "--print-invalid", action="store_true", 
+        dest="printinvalid", help="Prints invalid lines (not matched by regex)")
+
+parser.add_option( "--print-line", action="store_true", 
+        dest="printline", help="Prints entire line")
+
+parser.add_option( "--print-url", action="store_true", 
+        dest="printurl", help="Prints url")
+
+parser.add_option( "--print-format", action="store", 
+        dest="printformat", metavar="PATTERN", help="Print matching results in PATTERN")
+
+parser.add_option( "--log-format", action="store", 
+        dest="logformat", default="combined", metavar="PATTERN", help="Print matching results in PATTERN")
+
+filters = {}
+for field in formatregexes["combined"].groupindex.keys(): 
+    parser.add_option("--" + field + "-regex", action="callback", callback=addregexfilter, type="string",
+        help="Select lines where " + field + " matching REGEX", metavar="REGEX")
+
+parser.add_option( "--from-date", action="store", 
+        dest="fromdate", help="Start date/time")
+parser.add_option( "--to-date", action="store", 
+        dest="todate", help="Start date/time")
+
+(options, args) = parser.parse_args()
+
+if options.fromdate:
+    options.fromdate = datetime.datetime(1, 1, 1).strptime(options.fromdate,"%c")
+if options.todate:
+    options.todate = datetime.datetime(1, 1, 1).strptime(options.todate,"%c")
+
+report = Report()
+
+for filename in args:
+    logrep = Logfile(filename, report)
+
+report.summary()
+report.counter_summary()
