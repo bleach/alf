@@ -92,7 +92,10 @@ class Report:
             self.counters[trunctime] = 0
 
     def summary(self):
-        self.percent = 100 * float(self.matchedbyfilters)/(self.valid+self.invalid)
+        try:
+            self.percent = 100 * float(self.matchedbyfilters)/(self.valid+self.invalid)
+        except ZeroDivisionError:
+            self.percent = 0
         sys.stderr.write("%d/%d lines matched (%0.2f%%)\n" % (self.matchedbyfilters, self.valid+self.invalid, self.percent)) 
         sys.stderr.write(str(self.invalid) + " invalid lines\n")
         sys.stderr.write(str(self.valid) + " valid lines\n")
