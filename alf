@@ -148,7 +148,7 @@ def addregexfilter(option, opt_str, value, parser):
     fieldname = re.compile(r"^--([a-z]+)-regex").match(opt_str).group(1)
     filters[fieldname] = re.compile(value)
 
-parser = optparse.OptionParser()
+parser = optparse.OptionParser(usage = "usage: %prog [options] FILE [FILE...]")
 parser.add_option("-i", "--print-invalid", action="store_true", 
     dest="printinvalid", 
     help="Print lines which were not parsed.")
