@@ -57,7 +57,7 @@ class Request:
         else:
             return False
 
-    def matchesfilters(self, filters, fromtime=None, totime=None):
+    def matchesfilters(self, filters, fromtime = None, totime = None):
         """Returns True if all the filters given match"""
         for fieldname in filters.keys():
             regex = filters[fieldname]
@@ -145,22 +145,24 @@ def addregexfilter(option, opt_str, value, parser):
     filters[fieldname] = re.compile(value)
 
 parser = optparse.OptionParser(usage = "usage: %prog [options] FILE [FILE...]")
-parser.add_option("-i", "--print-invalid", action="store_true", 
-    dest="printinvalid", 
-    help="Print lines which were not parsed.")
+parser.add_option("-i", "--print-invalid", action = "store_true", 
+    dest = "printinvalid", 
+    help = "Print lines which were not parsed.")
 
-parser.add_option( "--print-line", action="store_true", 
-    dest="printline", help="Print matched lines to stdout.")
+parser.add_option("--print-lines", action = "store_true", default = True,
+    dest = "printline", 
+    help = "Print matched lines to stdout. This is the default option.")
 
-parser.add_option( "--print-url", action="store_true", 
-    dest="printurl", help="Print only the contents of the url field.")
+parser.add_option("--print-url", action = "store_true", default = False,
+    dest = "printurl", help = "Print only the contents of the url field.")
 
-parser.add_option( "--print-format", action="store", 
-    dest="printformat", metavar="PATTERN", help="Print matching results in PATTERN")
+parser.add_option("--print-format", action = "store", 
+    dest = "printformat", metavar = "PATTERN", 
+    help = "Print matching results in PATTERN")
 
-parser.add_option( "--log-format", action="store", 
-    dest="logformat", default="combined", metavar="PATTERN", 
-    help="Specify the format of the log file(s). Either common or combined.")
+parser.add_option("--log-format", action="store", 
+    dest = "logformat", default = "combined", metavar = "PATTERN", 
+    help = "Specify the format of the log file(s). Either common or combined.")
 
 filters = {}
 for field in formatregexes["combined"].groupindex.keys(): 
@@ -168,10 +170,10 @@ for field in formatregexes["combined"].groupindex.keys():
         callback=addregexfilter, type="string",
         help="Select lines where " + field + " matches REGEX", metavar="REGEX")
 
-parser.add_option( "--from-date", action="store", 
-    dest="fromdate", help="Start date/time")
-parser.add_option( "--to-date", action="store", 
-    dest="todate", help="Start date/time")
+parser.add_option( "--from-date", action = "store", 
+    dest = "fromdate", help = "Start date/time")
+parser.add_option( "--to-date", action = "store", 
+    dest = "todate", help = "Start date/time")
 
 (options, args) = parser.parse_args()
 if len(args) == 0:
