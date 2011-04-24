@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# alf is a tool to extract data from webserver log files
+# alf - A Log Filter
 #
 # Copyright (C) G Bleach 2009-2011
 #
@@ -131,12 +131,12 @@ class Logfile:
                     report.matchedbyfilters += 1
 
                     self.report.increment_counters(req)
-                    if options.printline:
-                        print line.strip() 
                     if options.printurl:
                         req.printattributes("url")
-                    if options.printformat:
+                    elif options.printformat:
                         req.printattributes(options.printformat)
+                    elif options.printline:
+                        print line.strip() 
         file.close()
 
 def parseline(line, lineregex):
