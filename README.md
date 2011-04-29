@@ -47,7 +47,9 @@ TODO
 Features:
 
 - Detect log formats automatically.
+- Query on fields which are in non-default log formats.
 - Add an option to sort output by date.
+- Configuration file to add more log formats.
 - Make it easier to call alf from other scripts.
 
 Internals:
