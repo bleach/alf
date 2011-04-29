@@ -54,4 +54,9 @@ Features:
 
 Internals:
 
-- Unit tests.
+- Testing:
+ - Unit tests.
+ - Test runner to run tests on all supported python versions.
+ - Simple integration tests against sample logfiles.
+ - Performance benchmarks.
+
