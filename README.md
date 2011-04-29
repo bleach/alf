@@ -14,7 +14,7 @@ and processing tasks on webserver log files:
 It currently parses some of the more commonly used apache formats, but it
 could parse many others, with a little work.
 
-I am currently not very happy with the command line options, so it's likely
+I am currently not very happy with the command line options, so it is likely
 that I will change both their names and the defaults in future commits.
 
 Installing
@@ -40,3 +40,16 @@ Examples
 2. Extract all the requests to /robots.txt:
 
     alf --url-regex='^/robots.txt' logfile
+
+TODO
+----
+
+Features:
+
+- Detect log formats automatically.
+- Add an option to sort output by date.
+- Make it easier to call alf from other scripts.
+
+Internals:
+
+- Unit tests.
