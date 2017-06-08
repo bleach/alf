@@ -35,12 +35,13 @@ formatregexes = {}
 common = r"""(?P<client>\S+) (?P<ident>\S+) (?P<user>\S+) (?P<timestamp>\[[^\]]+]) (?P<request>"(?P<method>[A-Z]+)\s+(?P<url>[\s\S]+)\s+HTTP[^"]+)" (?P<status>\S+) (?P<bytes>\S+)"""
 combined = common + ' "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)"'
 vhost_combined = r"""(?P<vhost>\S+) """ + combined
+elb = r"""^(?P<timestamp>\S+) (?P<elb>\S+) (?P<client>\S+):(?P<clientport>\S+) (?P<backend>\S+) (?P<request_processing_time>\S+) (?P<backend_processing_time>\S+) (?P<response_processing_time>\S+) (?P<status>\S+) (?P<backend_status_code>\S+) (?P<received_bytes>\S+) (?P<sent_bytes>\S+) "(?P<request>[^"]+)" "(?P<user_agent>[^"]+)" (?P<ssl_cipher>\S+) (?P<ssl_protocol>\S+)"""
 
 formatregexes["common"] = re.compile('^' + common)
 formatregexes["combined"] = re.compile('^' + combined)
 formatregexes["vhost_combined"] = re.compile('^' + vhost_combined)
+formatregexes["elb"] = re.compile('^' + elb)
 
-dateregex = re.compile(r"""^\[(.+) [+-]\d\d\d\d\]""")
 
 class Request:
     """Represents a HTTP request obtained from the logfiles."""
@@ -52,7 +53,10 @@ class Request:
         """Return time of the request in datetime format."""
         if not self._datetime:
             cleandate = dateregex.match(self.attributes["timestamp"]).group(1)
-            self._datetime = datetime.datetime(*(time.strptime(cleandate, "%d/%b/%Y:%H:%M:%S")[0:6]))
+            if options.logformat == "elb":
+                self._datetime = datetime.datetime(*(time.strptime(cleandate, "%Y-%m-%dT%H:%M:%S.%fZ")[0:6]))
+            else:
+                self._datetime = datetime.datetime(*(time.strptime(cleandate, "%d/%b/%Y:%H:%M:%S")[0:6]))
         return self._datetime
 
     def timeinrange(self, fromtime, totime):
@@ -194,6 +198,11 @@ if options.fromdate:
     options.fromdate = datetime.datetime(1, 1, 1).strptime(options.fromdate,"%c")
 if options.todate:
     options.todate = datetime.datetime(1, 1, 1).strptime(options.todate,"%c")
+
+if options.logformat == "elb":
+    dateregex = re.compile(r"""^(.+)""")
+else:
+    dateregex = re.compile(r"""^\[(.+) [+-]\d\d\d\d\]""")
 
 report = Report()
 
