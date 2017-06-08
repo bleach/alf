@@ -44,6 +44,13 @@ Examples
 TODO
 ----
 
+Tech debt:
+
+- Make a log format a more structured thing including:
+  - regex for parsing the log
+  - knowledge of how to translate timestamp fields into a python datetime
+- Address the confusion when you --print-invalid and --print-lines at the same time
+
 Features:
 
 - Detect log formats automatically.
